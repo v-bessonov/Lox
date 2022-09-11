@@ -1,63 +1,79 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿namespace Lox;
 
-namespace Lox
+/// <summary>
+/// Lox compiler
+/// </summary>
+public class Lox
 {
-    /// <summary>
-    /// Lox compiler
-    /// </summary>
-    public class Lox
+    private static bool _hadError = false;
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        if (args.Length > 1)
         {
-            if (args.Length > 1)
-            {
-                Console.WriteLine("Usage: lox [script]");
-                Environment.Exit(64);
-            }
-            else if (args.Length == 1)
-            {
-                RunFile(args[0]);
-            }
-            else
-            {
-                RunPrompt();
-            }
+            Console.WriteLine("Usage: lox [script]");
+            Environment.Exit(64);
         }
-
-        private static void RunPrompt()
+        else if (args.Length == 1)
         {
-            for (;;)
-            {
-                Console.WriteLine("> ");
-                var line = Console.ReadLine();
-                if (line is null)
-                {
-                    break;
-                }
-
-                Run(line);
-            }
+            RunFile(args[0]);
         }
-
-
-        private static void RunFile(string path)
+        else
         {
-            var content = File.ReadAllText(path);
-            Run(content);
+            RunPrompt();
         }
+    }
 
-        private static void Run(string source)
+    private static void RunPrompt()
+    {
+        for (;;)
         {
-            Scanner scanner = new Scanner(source);
-            List<Token> tokens = scanner.scanTokens();
-
-            // For now, just print the tokens.
-            foreach (var token in tokens)
+            Console.WriteLine("> ");
+            var line = Console.ReadLine();
+            if (line is null)
             {
-                Console.WriteLine(token);
+                break;
             }
+
+            Run(line);
+            _hadError = false;
         }
+    }
+
+
+    private static void RunFile(string path)
+    {
+        var content = File.ReadAllText(path);
+        Run(content);
+        if (_hadError)
+        {
+            Environment.Exit(65);
+        }
+    }
+
+    private static void Run(string source)
+    {
+        var scanner = new Scanner(source);
+        var tokens = scanner.ScanTokens();
+
+        // For now, just print the tokens.
+        foreach (var token in tokens)
+        {
+            Console.WriteLine(token);
+        }
+    }
+        
+    public static void Error(int line, string message) {
+        Report(line, "", message);
+    }
+
+    private static void Report
+    (
+        int line,
+        string where,
+        string message
+    )
+    {
+        Console.WriteLine($"[line {line}] Error{where}: {message}");
+        _hadError = true;
     }
 }
