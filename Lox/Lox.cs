@@ -1,4 +1,6 @@
-﻿namespace Lox;
+﻿using System.Reflection;
+
+namespace Lox;
 
 /// <summary>
 /// Lox compiler
@@ -42,7 +44,8 @@ public class Lox
 
     private static void RunFile(string path)
     {
-        var content = File.ReadAllText(path);
+        var fullPath = $"{AppDomain.CurrentDomain.BaseDirectory}\\{path}";
+        var content = File.ReadAllText(fullPath);
         Run(content);
         if (_hadError)
         {

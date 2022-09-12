@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 
 namespace Lox;
 
@@ -79,10 +80,69 @@ public class Scanner
             case '>':
                 AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
                 break;
+            case '/':
+                if (Match('/'))
+                {
+                    // A comment goes until the end of the line.
+                    while (Peek() != '\n' && !IsAtEnd())
+                    {
+                        Advance();
+                    }
+                }else if (Match('*'))
+                {
+                    while (!(Peek() == '*' && PeekNext() == '/'))
+                    {
+                        if (Peek() == '\0')
+                        {
+                            Lox.Error(_line, "Missing close tag");
+                            break;
+                        }
+
+                        Advance();
+                    }
+                    if (!IsAtEnd())
+                    {
+                        Advance();
+                        Advance();
+                    }
+                }
+                else
+                {
+                    AddToken(TokenType.SLASH);
+                }
+
+                break;
+            case ' ':
+            case '\r':
+            case '\t':
+                // Ignore whitespace.
+                break;
+            case '\n':
+                _line++;
+                break;
+            case '"':
+                StringScan();
+                break;
             default:
-                Lox.Error(_line, "Unexpected character.");
+                if (IsDigit(ch))
+                {
+                    Number();
+                }
+                else if (IsAlpha(ch))
+                {
+                    Identifier();
+                }
+                else
+                {
+                    Lox.Error(_line, "Unexpected character.");
+                }
+
                 break;
         }
+    }
+    
+    private bool IsDigit(char ch) {
+        return ch >= '0' && ch <= '9';
     }
     
     private char Advance() {
@@ -102,8 +162,86 @@ public class Scanner
     private bool Match(char expected)
     {
         if (IsAtEnd()) return false;
-        if (_source[_current] != expected) return false;
+        if (_source[_current] != expected)
+        {
+            return false;
+        }
         _current++;
         return true;
+    }
+    
+    private char Peek() {
+        if (IsAtEnd())
+        {
+            return '\0';
+        }
+        return _source[_current];
+    }
+    
+    private void StringScan() {
+        while (Peek() != '"' && !IsAtEnd()) {
+            if (Peek() == '\n')
+            {
+                _line++;
+            }
+            Advance();
+        }
+        if (IsAtEnd()) {
+            Lox.Error(_line, "Unterminated string.");
+            return;
+        }
+        // The closing ".
+        Advance();
+        // Trim the surrounding quotes.
+        var value = _source.Substring(_start + 1, (_current - 1) - (_start + 1));
+        AddToken(TokenType.STRING, value);
+    }
+
+    private void Number()
+    {
+        while (IsDigit(Peek()))
+        {
+            Advance();
+        }
+        // Look for a fractional part.
+        if (Peek() == '.' && IsDigit(PeekNext()))
+        {
+           // Consume the "."
+            Advance();
+            while (IsDigit(Peek()))
+            {
+                Advance();
+            }
+        }
+
+        double.TryParse(_source.Substring(_start, _current - _start), NumberStyles.Any, CultureInfo.InvariantCulture,
+            out var val);
+        AddToken(TokenType.NUMBER, val);
+    }
+    
+    private char PeekNext() {
+        if (_current + 1 >= _source.Length)
+        {
+            return '\0';
+        }
+        return _source[_current + 1];
+    }
+    private void Identifier() {
+        while (IsAlphaNumeric(Peek()))
+        {
+            Advance();
+        }
+        AddToken(TokenType.IDENTIFIER);
+    }
+    
+    private bool IsAlpha(char ch)
+    {
+        return (ch >= 'a' && ch <= 'z') ||
+               (ch >= 'A' && ch <= 'Z') ||
+               ch == '_';
+    }
+    
+    private bool IsAlphaNumeric(char ch) {
+        return IsAlpha(ch) || IsDigit(ch);
     }
 }
