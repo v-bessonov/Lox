@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace Lox;
+﻿namespace Lox;
 
 /// <summary>
 /// Lox compiler

@@ -231,7 +231,11 @@ public class Scanner
         {
             Advance();
         }
-        AddToken(TokenType.IDENTIFIER);
+        var text = _source.Substring(_start, _current - _start);
+        Keywords.LoxKeyWords.TryGetValue(text, out var type);
+        
+        type ??= TokenType.IDENTIFIER;
+        AddToken(type.Value);
     }
     
     private bool IsAlpha(char ch)
