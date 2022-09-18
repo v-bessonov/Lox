@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace Lox;
+namespace Lox.Scanner;
 
 
 /// <summary>

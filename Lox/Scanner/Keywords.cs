@@ -1,4 +1,4 @@
-﻿namespace Lox;
+﻿namespace Lox.Scanner;
 
 public class Keywords
 {

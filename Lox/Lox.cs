@@ -1,4 +1,9 @@
-﻿namespace Lox;
+﻿using Lox.Parser.Ast;
+using Lox.Parser.Ast.Expressions;
+using Lox.Scanner;
+using Expression = System.Linq.Expressions.Expression;
+
+namespace Lox;
 
 /// <summary>
 /// Lox compiler
@@ -21,6 +26,8 @@ public class Lox
         {
             RunPrompt();
         }
+
+        TestAstPrinter();
     }
 
     private static void RunPrompt()
@@ -53,7 +60,7 @@ public class Lox
 
     private static void Run(string source)
     {
-        var scanner = new Scanner(source);
+        var scanner = new Scanner.Scanner(source);
         var tokens = scanner.ScanTokens();
 
         // For now, just print the tokens.
@@ -76,5 +83,18 @@ public class Lox
     {
         Console.WriteLine($"[line {line}] Error{where}: {message}");
         _hadError = true;
+    }
+
+    private static void TestAstPrinter()
+    {
+        var
+            expression = new Binary(
+                new Unary(
+                    new Token(TokenType.MINUS, "-", null, 1),
+                    new Literal(123)),
+                new Token(TokenType.STAR, "*", null, 1),
+                new Grouping(
+                    new Literal(45.67)));
+        Console.WriteLine(new AstPrinter().Print(expression));
     }
 }

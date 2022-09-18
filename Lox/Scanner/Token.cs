@@ -1,4 +1,6 @@
-﻿namespace Lox;
+﻿using System.Globalization;
+
+namespace Lox.Scanner;
 
 
 /// <summary>
@@ -21,6 +23,6 @@ public class Token
 
     public override string ToString()
     {
-        return $"{Type} {Lexeme} {Literal}";
+        return $"{Type} {Lexeme} {Convert.ToString(Literal, CultureInfo.InvariantCulture)}";
     }
 }
