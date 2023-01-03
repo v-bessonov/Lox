@@ -1,7 +1,7 @@
-﻿using Lox.Parser.Ast;
+﻿using Lox.Interpreter;
+using Lox.Parser.Ast;
 using Lox.Parser.Ast.Expressions;
 using Lox.Scanner;
-using Expression = System.Linq.Expressions.Expression;
 
 namespace Lox;
 
@@ -11,6 +11,8 @@ namespace Lox;
 public class Lox
 {
     private static bool _hadError = false;
+    private static bool _hadRuntimeError = false;
+    private static Interpreter.Interpreter _interpreter = new Interpreter.Interpreter();
     public static void Main(string[] args)
     {
         if (args.Length > 1)
@@ -27,7 +29,7 @@ public class Lox
             RunPrompt();
         }
 
-        TestAstPrinter();
+        //TestAstPrinter();
     }
 
     private static void RunPrompt()
@@ -64,14 +66,43 @@ public class Lox
         var tokens = scanner.ScanTokens();
 
         // For now, just print the tokens.
-        foreach (var token in tokens)
+        // foreach (var token in tokens)
+        // {
+        //     Console.WriteLine(token);
+        // }
+
+        var parser = new Parser.Parser(tokens);
+        var expression = parser.Parse();
+        // Stop if there was a syntax error.
+        if (_hadError)
         {
-            Console.WriteLine(token);
+            Environment.Exit(65);
         }
-    }
+
+        if (_hadRuntimeError)
+        {
+            Environment.Exit(70);
+        }
+
+        Console.WriteLine(new AstPrinter().Print(expression));
         
+        _interpreter.Interpret(expression);
+    }
+
     public static void Error(int line, string message) {
         Report(line, "", message);
+    }
+
+    public static void Error(Token token, String message)
+    {
+        if (token.Type == TokenType.EOF)
+        {
+            Report(token.Line, " at end", message);
+        }
+        else
+        {
+            Report(token.Line, $" at '{token.Lexeme}'", message);
+        }
     }
 
     private static void Report
@@ -96,5 +127,10 @@ public class Lox
                 new Grouping(
                     new Literal(45.67)));
         Console.WriteLine(new AstPrinter().Print(expression));
+    }
+    
+    public static void RuntimeError(RuntimeError error) {
+        Console.WriteLine($"{error.Message}{Environment.NewLine}[line {error.Token.Line}]");
+        _hadRuntimeError = true;
     }
 }
