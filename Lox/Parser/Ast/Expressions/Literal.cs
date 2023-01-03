@@ -11,8 +11,8 @@ public class Literal : Expression
         Value = value;
     }
 
-    public override T Accept<T>(IVisitor<T> visitor)
+    public override T Accept<T>(IExpressionVisitor<T> expressionVisitor)
     {
-        return visitor.VisitLiteralExpression(this);
+        return expressionVisitor.VisitLiteralExpression(this);
     }
 }

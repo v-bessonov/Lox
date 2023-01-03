@@ -14,8 +14,8 @@ public class Unary : Expression
         Right = right;
     }
 
-    public override T Accept<T>(IVisitor<T> visitor)
+    public override T Accept<T>(IExpressionVisitor<T> expressionVisitor)
     {
-        return visitor.VisitUnaryExpression(this);
+        return expressionVisitor.VisitUnaryExpression(this);
     }
 }

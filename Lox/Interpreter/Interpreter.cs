@@ -1,13 +1,23 @@
 ﻿using Lox.Parser.Ast.Expressions;
 using Lox.Parser.Ast.Interfaces;
+using Lox.Parser.Ast.Statements;
 using Lox.Scanner;
 
 namespace Lox.Interpreter;
 
 
-public class Interpreter : IVisitor<object>
+public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 {
-    
+    public void Interpret(List<Statement> statements) {
+        try {
+            foreach (var statement in statements)
+            {
+                Execute(statement); 
+            }
+        } catch (RuntimeError error) {
+            Lox.RuntimeError(error);
+        }
+    }
     public void Interpret(Expression expression) {
         try {
             object value = Evaluate(expression);
@@ -15,6 +25,10 @@ public class Interpreter : IVisitor<object>
         } catch (RuntimeError error) {
             Lox.RuntimeError(error);
         }
+    }
+    
+    private void Execute(Statement statement) {
+        statement.Accept(this);
     }
     
     private string Stringify(object obj) {
@@ -154,5 +168,16 @@ public class Interpreter : IVisitor<object>
             return false;
         }
         return a.Equals(b);
+    }
+
+    public void VisitPrintStatement(PrintStatement statement)
+    {
+        var value = Evaluate(statement.Expression);
+        Console.WriteLine(Stringify(value));
+    }
+
+    public void VisitExpressionStatement(ExpressionStatement statement)
+    {
+        Evaluate(statement.Expression);
     }
 }

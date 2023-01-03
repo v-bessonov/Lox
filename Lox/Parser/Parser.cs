@@ -1,4 +1,5 @@
 ﻿using Lox.Parser.Ast.Expressions;
+using Lox.Parser.Ast.Statements;
 using Lox.Scanner;
 
 namespace Lox.Parser;
@@ -13,6 +14,14 @@ public class Parser
         _tokens = tokens;
     }
     
+    public List<Statement> parse() {
+        List<Statement> statements = new();
+        while (!IsAtEnd()) {
+            statements.Add(Statement());
+        }
+        return statements;
+    }
+    
     public Expression Parse() {
         try {
             return Expression();
@@ -20,7 +29,29 @@ public class Parser
             return null;
         }
     }
+
+    private Statement Statement()
+    {
+        if (Match(TokenType.PRINT))
+        {
+            return PrintStatement();
+        }
+
+        return ExpressionStatement();
+    }
     
+    private Statement PrintStatement() {
+        var expression = Expression();
+        Consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new PrintStatement(expression);
+    }
+    
+    private Statement ExpressionStatement() {
+        var expression = Expression();
+        Consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new ExpressionStatement(expression);
+    }
+
     private Expression Expression() {
         return Equality();
     }

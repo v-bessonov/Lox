@@ -11,8 +11,8 @@ public class Grouping : Expression
         GroupingExpression = expression;
     }
 
-    public override T Accept<T>(IVisitor<T> visitor)
+    public override T Accept<T>(IExpressionVisitor<T> expressionVisitor)
     {
-        return visitor.VisitGroupingExpression(this);
+        return expressionVisitor.VisitGroupingExpression(this);
     }
 }

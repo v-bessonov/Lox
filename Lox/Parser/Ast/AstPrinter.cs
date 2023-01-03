@@ -5,7 +5,7 @@ using Lox.Parser.Ast.Interfaces;
 
 namespace Lox.Parser.Ast;
 
-public class AstPrinter: IVisitor<string>
+public class AstPrinter: IExpressionVisitor<string>
 {
     public string Print(Expression expression) {
         return expression.Accept(this);

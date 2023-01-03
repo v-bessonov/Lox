@@ -72,7 +72,8 @@ public class Lox
         // }
 
         var parser = new Parser.Parser(tokens);
-        var expression = parser.Parse();
+        //var expression = parser.Parse();
+        var statements = parser.parse();
         // Stop if there was a syntax error.
         if (_hadError)
         {
@@ -84,9 +85,10 @@ public class Lox
             Environment.Exit(70);
         }
 
-        Console.WriteLine(new AstPrinter().Print(expression));
+        //Console.WriteLine(new AstPrinter().Print(expression));
         
-        _interpreter.Interpret(expression);
+        //_interpreter.Interpret(expression);
+        _interpreter.Interpret(statements);
     }
 
     public static void Error(int line, string message) {
