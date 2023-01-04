@@ -8,4 +8,5 @@ public interface IExpressionVisitor<T>
     T VisitGroupingExpression(Grouping expression);
     T VisitLiteralExpression(Literal expression);
     T VisitUnaryExpression(Unary expression);
+    T VisitVariableExpression(Variable expression);
 }

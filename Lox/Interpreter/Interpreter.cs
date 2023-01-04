@@ -8,6 +8,7 @@ namespace Lox.Interpreter;
 
 public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 {
+    private Environment _environment = new Environment();
     public void Interpret(List<Statement> statements) {
         try {
             foreach (var statement in statements)
@@ -66,7 +67,12 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         // Unreachable.
         return null;
     }
-    
+
+    public object VisitVariableExpression(Variable expression)
+    {
+        return _environment.Get(expression.Token);
+    }
+
     private bool IsTruthy(object obj) {
         if (obj == null)
         {
@@ -179,5 +185,14 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
     public void VisitExpressionStatement(ExpressionStatement statement)
     {
         Evaluate(statement.Expression);
+    }
+
+    public void VisitVariableDeclarationStatement(VariableDeclarationStatement statement)
+    {
+        object value = null;
+        if (statement.Expression is not null) {
+            value = Evaluate(statement.Expression);
+        }
+        _environment.Define(statement.Token.Lexeme, value);
     }
 }

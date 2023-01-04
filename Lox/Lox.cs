@@ -2,6 +2,7 @@
 using Lox.Parser.Ast;
 using Lox.Parser.Ast.Expressions;
 using Lox.Scanner;
+using Environment = System.Environment;
 
 namespace Lox;
 
@@ -73,7 +74,7 @@ public class Lox
 
         var parser = new Parser.Parser(tokens);
         //var expression = parser.Parse();
-        var statements = parser.parse();
+        var statements = parser.Parse();
         // Stop if there was a syntax error.
         if (_hadError)
         {

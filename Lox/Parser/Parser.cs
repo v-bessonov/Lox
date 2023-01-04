@@ -14,15 +14,41 @@ public class Parser
         _tokens = tokens;
     }
     
-    public List<Statement> parse() {
+    public List<Statement> Parse() {
         List<Statement> statements = new();
         while (!IsAtEnd()) {
-            statements.Add(Statement());
+            statements.Add(Declaration());
         }
         return statements;
     }
     
-    public Expression Parse() {
+    private Statement Declaration() {
+        try {
+            if (Match(TokenType.VAR))
+            {
+                return VariableDeclaration();
+            }
+            return Statement();
+        } catch (ParseError error) {
+            Synchronize();
+            return null;
+        }
+    }
+
+    private Statement VariableDeclaration()
+    {
+        var name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
+        Expression initializer = null;
+        if (Match(TokenType.EQUAL))
+        {
+            initializer = Expression();
+        }
+
+        Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        return new VariableDeclarationStatement(name, initializer);
+    }
+
+    public Expression ParseExpression() {
         try {
             return Expression();
         } catch (ParseError error) {
@@ -136,6 +162,10 @@ public class Parser
         if (Match(TokenType.NUMBER, TokenType.STRING))
         {
             return new Literal(Previous().Literal);
+        }
+        
+        if (Match(TokenType.IDENTIFIER)) {
+            return new Variable(Previous());
         }
 
         if (Match(TokenType.LEFT_PAREN)) {
