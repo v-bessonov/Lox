@@ -79,7 +79,26 @@ public class Parser
     }
 
     private Expression Expression() {
-        return Equality();
+        return Assignment();
+    }
+
+    private Expression Assignment()
+    {
+        var expression = Equality();
+        if (Match(TokenType.EQUAL))
+        {
+            var equals = Previous();
+            var value = Assignment();
+            if (expression is Variable)
+            {
+                var token = ((Variable)expression).Token;
+                return new Assignment(token, value);
+            }
+
+            Error(equals, "Invalid assignment target.");
+        }
+
+        return expression;
     }
 
     private Expression Equality()

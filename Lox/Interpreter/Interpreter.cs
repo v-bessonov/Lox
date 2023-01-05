@@ -73,6 +73,13 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         return _environment.Get(expression.Token);
     }
 
+    public object VisitAssignmentExpression(Assignment expression)
+    {
+        var value = Evaluate(expression.Expression);
+        _environment.Assign(expression.Token, value);
+        return value;
+    }
+
     private bool IsTruthy(object obj) {
         if (obj == null)
         {
