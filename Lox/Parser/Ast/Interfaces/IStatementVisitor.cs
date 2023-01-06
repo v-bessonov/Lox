@@ -6,6 +6,6 @@ public interface IStatementVisitor
 {
     void VisitPrintStatement(PrintStatement statement);
     void VisitExpressionStatement(ExpressionStatement statement);
-    
     void VisitVariableDeclarationStatement(VariableDeclarationStatement statement);
+    void VisitBlockStatement(BlockStatement statement);
 }

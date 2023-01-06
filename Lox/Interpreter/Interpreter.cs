@@ -202,4 +202,30 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         }
         _environment.Define(statement.Token.Lexeme, value);
     }
+
+    public void VisitBlockStatement(BlockStatement statement)
+    {
+        ExecuteBlock(statement.Statements, new Environment(_environment));
+    }
+
+    private void ExecuteBlock
+    (
+        List<Statement> statements,
+        Environment environment
+    )
+    {
+        var previous = _environment;
+        try
+        {
+            _environment = environment;
+            foreach (var statement in statements)
+            {
+                Execute(statement);
+            }
+        }
+        finally
+        {
+            _environment = previous;
+        }
+    }
 }

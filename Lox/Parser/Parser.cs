@@ -63,9 +63,26 @@ public class Parser
             return PrintStatement();
         }
 
+        if (Match(TokenType.LEFT_BRACE))
+        {
+            return new BlockStatement(Block());
+        }
+
         return ExpressionStatement();
     }
-    
+
+    private List<Statement> Block()
+    {
+        List<Statement> statements = new();
+        while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+        {
+            statements.Add(Declaration());
+        }
+
+        Consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
     private Statement PrintStatement() {
         var expression = Expression();
         Consume(TokenType.SEMICOLON, "Expect ';' after value.");
