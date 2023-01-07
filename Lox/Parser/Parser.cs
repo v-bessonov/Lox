@@ -58,6 +58,10 @@ public class Parser
 
     private Statement Statement()
     {
+        if (Match(TokenType.IF))
+        {
+            return IfStatement();
+        }
         if (Match(TokenType.PRINT))
         {
             return PrintStatement();
@@ -69,6 +73,21 @@ public class Parser
         }
 
         return ExpressionStatement();
+    }
+
+    private Statement IfStatement()
+    {
+        Consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+        var condition = Expression();
+        Consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+        var thenBranch = Statement();
+        Statement elseBranch = null;
+        if (Match(TokenType.ELSE))
+        {
+            elseBranch = Statement();
+        }
+
+        return new IfStatement(condition, thenBranch, elseBranch);
     }
 
     private List<Statement> Block()
@@ -101,7 +120,7 @@ public class Parser
 
     private Expression Assignment()
     {
-        var expression = Equality();
+        var expression = Or();
         if (Match(TokenType.EQUAL))
         {
             var equals = Previous();
@@ -113,6 +132,32 @@ public class Parser
             }
 
             Error(equals, "Invalid assignment target.");
+        }
+
+        return expression;
+    }
+
+    private Expression Or()
+    {
+        var expression = And();
+        while (Match(TokenType.OR))
+        {
+            var operation = Previous();
+            Expression right = And();
+            expression = new Logical(expression, operation, right);
+        }
+
+        return expression;
+    }
+
+    private Expression And()
+    {
+        var expression = Equality();
+        while (Match(TokenType.AND))
+        {
+            var operation = Previous();
+            var right = Equality();
+            expression = new Logical(expression, operation, right);
         }
 
         return expression;

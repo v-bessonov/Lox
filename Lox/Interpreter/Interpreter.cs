@@ -80,6 +80,23 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         return value;
     }
 
+    public object VisitLogicalExpression(Logical expression)
+    {
+        var left = Evaluate(expression.Left);
+        if (expression.Operation.Type == TokenType.OR) {
+            if (IsTruthy(left))
+            {
+                return left;
+            }
+        } else {
+            if (!IsTruthy(left))
+            {
+                return left;
+            }
+        }
+        return Evaluate(expression.Right);
+    }
+
     private bool IsTruthy(object obj) {
         if (obj == null)
         {
@@ -206,6 +223,15 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
     public void VisitBlockStatement(BlockStatement statement)
     {
         ExecuteBlock(statement.Statements, new Environment(_environment));
+    }
+
+    public void VisitIfStatement(IfStatement statement)
+    {
+        if (IsTruthy(Evaluate(statement.Condition))) {
+            Execute(statement.ThenBranch);
+        } else if (statement.ElseBranch != null) {
+            Execute(statement.ElseBranch);
+        }
     }
 
     private void ExecuteBlock

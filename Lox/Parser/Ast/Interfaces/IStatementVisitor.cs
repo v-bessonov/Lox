@@ -8,4 +8,5 @@ public interface IStatementVisitor
     void VisitExpressionStatement(ExpressionStatement statement);
     void VisitVariableDeclarationStatement(VariableDeclarationStatement statement);
     void VisitBlockStatement(BlockStatement statement);
+    void VisitIfStatement(IfStatement statement);
 }

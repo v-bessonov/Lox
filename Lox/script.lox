@@ -17,3 +17,11 @@ var c = "global c";
 print a;
 print b;
 print c;
+
+if(false)
+    print a;
+else
+    print b;    
+    
+print "hi" or 2;
+print nil or "yes";
