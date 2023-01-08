@@ -9,4 +9,5 @@ public interface IStatementVisitor
     void VisitVariableDeclarationStatement(VariableDeclarationStatement statement);
     void VisitBlockStatement(BlockStatement statement);
     void VisitIfStatement(IfStatement statement);
+    void VisitWhileStatement(WhileStatement statement);
 }

@@ -1,0 +1,14 @@
+var a = 1;
+while(a > 0)
+{
+    print a;
+    a = 0;
+}
+
+{
+    var i = 0;
+    while (i < 10) {
+        print i;
+        i = i + 1;
+    }
+}

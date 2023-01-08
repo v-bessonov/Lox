@@ -18,6 +18,7 @@ public class Keywords
         { "this", TokenType.THIS },
         { "true", TokenType.TRUE },
         { "var", TokenType.VAR },
-        { "while", TokenType.WHILE }
+        { "while", TokenType.WHILE },
+        { "for", TokenType.FOR }
     };
 }

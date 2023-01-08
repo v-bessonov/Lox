@@ -234,6 +234,13 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         }
     }
 
+    public void VisitWhileStatement(WhileStatement statement)
+    {
+        while (IsTruthy(Evaluate(statement.Condition))) {
+            Execute(statement.Body);
+        }
+    }
+
     private void ExecuteBlock
     (
         List<Statement> statements,

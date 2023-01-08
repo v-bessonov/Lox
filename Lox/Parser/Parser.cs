@@ -58,6 +58,10 @@ public class Parser
 
     private Statement Statement()
     {
+        if (Match(TokenType.FOR))
+        {
+            return ForStatement();
+        }
         if (Match(TokenType.IF))
         {
             return IfStatement();
@@ -67,12 +71,70 @@ public class Parser
             return PrintStatement();
         }
 
+        if (Match(TokenType.WHILE))
+        {
+            return WhileStatement();
+        }
+
         if (Match(TokenType.LEFT_BRACE))
         {
             return new BlockStatement(Block());
         }
 
         return ExpressionStatement();
+    }
+
+    private Statement ForStatement()
+    {
+        Consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+        Statement initializer;
+        if (Match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (Match(TokenType.VAR)) {
+            initializer = VariableDeclaration();
+        } else {
+            initializer = ExpressionStatement();
+        }
+        Expression condition = null;
+        if (!Check(TokenType.SEMICOLON)) {
+            condition = Expression();
+        }
+        Consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+        
+        Expression increment = null;
+        if (!Check(TokenType.RIGHT_PAREN)) {
+            increment = Expression();
+        }
+        Consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+        
+        var body = Statement();
+        
+        if (increment != null)
+        {
+            body = new BlockStatement(new List<Statement> { body, new ExpressionStatement(increment) });
+        }
+
+        if (condition == null)
+        {
+            condition = new Literal(true);
+        }
+        body = new WhileStatement(condition, body);
+        
+        if (initializer != null)
+        {
+            body = new BlockStatement(new List<Statement> { initializer, body });
+        }
+        
+        return body;
+    }
+
+    private Statement WhileStatement()
+    {
+        Consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+        var condition = Expression();
+        Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        var body = Statement();
+        return new WhileStatement(condition, body);
     }
 
     private Statement IfStatement()
@@ -333,6 +395,7 @@ public class Parser
 
     private Token Peek()
     {
+        var ff = _tokens[_current];
         return _tokens[_current];
     }
 
