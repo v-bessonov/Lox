@@ -71,10 +71,16 @@ public class Lox
         // {
         //     Console.WriteLine(token);
         // }
+        //
+        // return;
 
         var parser = new Parser.Parser(tokens);
         //var expression = parser.Parse();
         var statements = parser.Parse();
+
+        new AstPrinter().Print(statements);
+
+        return;
         // Stop if there was a syntax error.
         if (_hadError)
         {

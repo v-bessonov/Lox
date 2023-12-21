@@ -1,6 +1,5 @@
 ﻿using Lox.Parser.Ast.Expressions;
 using Lox.Parser.Ast.Interfaces;
-using Lox.Scanner;
 
 namespace Lox.Parser.Ast.Statements;
 
