@@ -50,5 +50,7 @@ public enum TokenType
         TRUE,
         VAR,
         WHILE,
+        BREAK,
+        CONTINUE,
         EOF
 }

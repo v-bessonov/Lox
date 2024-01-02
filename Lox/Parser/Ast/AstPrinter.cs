@@ -115,4 +115,14 @@ public class AstPrinter: IExpressionVisitor<string>, IStatementVisitor
         Console.WriteLine($"Statement: {nameof(WhileStatement)}; Condition: {condition}");
         statement.Body.Accept(this);
     }
+
+    public void VisitBreakStatement(BreakStatement breakStatement)
+    {
+        Console.WriteLine($"Statement: {nameof(BreakStatement)};");
+    }
+
+    public void VisitContinueStatement(ContinueStatement continueStatement)
+    {
+        Console.WriteLine($"Statement: {nameof(ContinueStatement)};");
+    }
 }

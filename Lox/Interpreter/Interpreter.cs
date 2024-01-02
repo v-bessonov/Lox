@@ -1,4 +1,5 @@
-﻿using Lox.Parser.Ast.Expressions;
+﻿using Lox.Parser.Ast.Exceptions;
+using Lox.Parser.Ast.Expressions;
 using Lox.Parser.Ast.Interfaces;
 using Lox.Parser.Ast.Statements;
 using Lox.Scanner;
@@ -237,8 +238,29 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
     public void VisitWhileStatement(WhileStatement statement)
     {
         while (IsTruthy(Evaluate(statement.Condition))) {
-            Execute(statement.Body);
+            try
+            {
+                Execute(statement.Body);
+            }
+            catch (BreakException)
+            {
+                break;
+            }
+            catch (ContinueException)
+            {
+                continue;
+            }
         }
+    }
+
+    public void VisitBreakStatement(BreakStatement breakStatement)
+    {
+        throw new BreakException();
+    }
+
+    public void VisitContinueStatement(ContinueStatement continueStatement)
+    {
+        throw new ContinueException();
     }
 
     private void ExecuteBlock

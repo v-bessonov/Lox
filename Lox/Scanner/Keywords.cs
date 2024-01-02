@@ -19,6 +19,8 @@ public class Keywords
         { "true", TokenType.TRUE },
         { "var", TokenType.VAR },
         { "while", TokenType.WHILE },
+        { "break", TokenType.BREAK },
+        { "continue", TokenType.CONTINUE },
         { "for", TokenType.FOR }
     };
 }

@@ -78,9 +78,9 @@ public class Lox
         //var expression = parser.Parse();
         var statements = parser.Parse();
 
-        new AstPrinter().Print(statements);
+        //new AstPrinter().Print(statements);
 
-        return;
+        //return;
         // Stop if there was a syntax error.
         if (_hadError)
         {

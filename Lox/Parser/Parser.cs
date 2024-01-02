@@ -8,28 +8,37 @@ public class Parser
 {
     private readonly List<Token> _tokens;
     private int _current = 0;
+    private int _loopLevel = 0;
 
     public Parser(List<Token> tokens)
     {
         _tokens = tokens;
     }
-    
-    public List<Statement> Parse() {
+
+    public List<Statement> Parse()
+    {
         List<Statement> statements = new();
-        while (!IsAtEnd()) {
+        while (!IsAtEnd())
+        {
             statements.Add(Declaration());
         }
+
         return statements;
     }
-    
-    private Statement Declaration() {
-        try {
+
+    private Statement Declaration()
+    {
+        try
+        {
             if (Match(TokenType.VAR))
             {
                 return VariableDeclaration();
             }
+
             return Statement();
-        } catch (ParseError error) {
+        }
+        catch (ParseError error)
+        {
             Synchronize();
             return null;
         }
@@ -48,10 +57,14 @@ public class Parser
         return new VariableDeclarationStatement(name, initializer);
     }
 
-    public Expression ParseExpression() {
-        try {
+    public Expression ParseExpression()
+    {
+        try
+        {
             return Expression();
-        } catch (ParseError error) {
+        }
+        catch (ParseError error)
+        {
             return null;
         }
     }
@@ -62,10 +75,12 @@ public class Parser
         {
             return ForStatement();
         }
+
         if (Match(TokenType.IF))
         {
             return IfStatement();
         }
+
         if (Match(TokenType.PRINT))
         {
             return PrintStatement();
@@ -74,6 +89,16 @@ public class Parser
         if (Match(TokenType.WHILE))
         {
             return WhileStatement();
+        }
+
+        if (Match(TokenType.BREAK))
+        {
+            return BreakStatement();
+        }
+        
+        if (Match(TokenType.CONTINUE))
+        {
+            return ContinueStatement();
         }
 
         if (Match(TokenType.LEFT_BRACE))
@@ -86,29 +111,40 @@ public class Parser
 
     private Statement ForStatement()
     {
+        _loopLevel += 1;
         Consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
         Statement initializer;
-        if (Match(TokenType.SEMICOLON)) {
+        if (Match(TokenType.SEMICOLON))
+        {
             initializer = null;
-        } else if (Match(TokenType.VAR)) {
+        }
+        else if (Match(TokenType.VAR))
+        {
             initializer = VariableDeclaration();
-        } else {
+        }
+        else
+        {
             initializer = ExpressionStatement();
         }
+
         Expression condition = null;
-        if (!Check(TokenType.SEMICOLON)) {
+        if (!Check(TokenType.SEMICOLON))
+        {
             condition = Expression();
         }
+
         Consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
-        
+
         Expression increment = null;
-        if (!Check(TokenType.RIGHT_PAREN)) {
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
             increment = Expression();
         }
+
         Consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
-        
+
         var body = Statement();
-        
+
         if (increment != null)
         {
             body = new BlockStatement(new List<Statement> { body, new ExpressionStatement(increment) });
@@ -118,23 +154,29 @@ public class Parser
         {
             condition = new Literal(true);
         }
+
         body = new WhileStatement(condition, body);
-        
+
         if (initializer != null)
         {
             body = new BlockStatement(new List<Statement> { initializer, body });
         }
         
+        _loopLevel -= 1;
+
         return body;
     }
 
     private Statement WhileStatement()
     {
+        _loopLevel += 1;
         Consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
         var condition = Expression();
         Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
         var body = Statement();
-        return new WhileStatement(condition, body);
+        var whileStatement = new WhileStatement(condition, body);
+        _loopLevel -= 1;
+        return whileStatement;
     }
 
     private Statement IfStatement()
@@ -164,19 +206,42 @@ public class Parser
         return statements;
     }
 
-    private Statement PrintStatement() {
+    private Statement BreakStatement()
+    {
+        if (_loopLevel <= 0)
+        {
+            throw Error(Previous(), "Expect 'break' inside a loop."); 
+        }
+        Consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new BreakStatement();
+    }
+    
+    private Statement ContinueStatement()
+    {
+        if (_loopLevel <= 0)
+        {
+            throw Error(Previous(), "Expect 'continue' inside a loop."); 
+        }   
+        Consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new ContinueStatement();
+    }
+    
+    private Statement PrintStatement()
+    {
         var expression = Expression();
         Consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new PrintStatement(expression);
     }
-    
-    private Statement ExpressionStatement() {
+
+    private Statement ExpressionStatement()
+    {
         var expression = Expression();
         Consume(TokenType.SEMICOLON, "Expect ';' after expression.");
         return new ExpressionStatement(expression);
     }
 
-    private Expression Expression() {
+    private Expression Expression()
+    {
         return Assignment();
     }
 
@@ -251,13 +316,16 @@ public class Parser
         return expression;
     }
 
-    private Expression Term() {
+    private Expression Term()
+    {
         var expression = Factor();
-        while (Match(TokenType.MINUS, TokenType.PLUS)) {
+        while (Match(TokenType.MINUS, TokenType.PLUS))
+        {
             var operation = Previous();
             var right = Factor();
             expression = new Binary(expression, operation, right);
         }
+
         return expression;
     }
 
@@ -285,8 +353,9 @@ public class Parser
 
         return Primary();
     }
-    
-    private Expression Primary() {
+
+    private Expression Primary()
+    {
         if (Match(TokenType.FALSE))
         {
             return new Literal(false);
@@ -306,43 +375,50 @@ public class Parser
         {
             return new Literal(Previous().Literal);
         }
-        
-        if (Match(TokenType.IDENTIFIER)) {
+
+        if (Match(TokenType.IDENTIFIER))
+        {
             return new Variable(Previous());
         }
 
-        if (Match(TokenType.LEFT_PAREN)) {
+        if (Match(TokenType.LEFT_PAREN))
+        {
             Expression
                 expr = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Grouping(expr);
         }
-        
+
         throw Error(Peek(), "Expect expression.");
     }
-    
-    
 
-    private bool Match(params TokenType[] types) {
+
+    private bool Match(params TokenType[] types)
+    {
         foreach (var type in types)
         {
-            if (Check(type)) {
+            if (Check(type))
+            {
                 Advance();
                 return true;
             }
         }
+
         return false;
     }
-    
-    private Token Consume(TokenType type, String message) {
+
+    private Token Consume(TokenType type, String message)
+    {
         if (Check(type))
         {
             return Advance();
         }
+
         throw Error(Peek(), message);
     }
-    
-    private ParseError Error(Token token, String message) {
+
+    private ParseError Error(Token token, String message)
+    {
         Lox.Error(token, message);
         return new ParseError();
     }
@@ -361,6 +437,8 @@ public class Parser
                 case TokenType.FOR:
                 case TokenType.IF:
                 case TokenType.WHILE:
+                case TokenType.BREAK:
+                case TokenType.CONTINUE:
                 case TokenType.PRINT:
                 case TokenType.RETURN:
                     return;
@@ -370,11 +448,13 @@ public class Parser
         }
     }
 
-    private bool Check(TokenType type) {
+    private bool Check(TokenType type)
+    {
         if (IsAtEnd())
         {
             return false;
         }
+
         return Peek().Type == type;
     }
 
