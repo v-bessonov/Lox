@@ -11,4 +11,5 @@ public interface IExpressionVisitor<T>
     T VisitVariableExpression(Variable expression);
     T VisitAssignmentExpression(Assignment expression);
     T VisitLogicalExpression(Logical expression);
+    T VisitCallExpression(Call expression);
 }

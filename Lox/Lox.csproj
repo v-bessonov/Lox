@@ -21,6 +21,9 @@
       <None Update="script_3.lox">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="script4.lox">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

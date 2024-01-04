@@ -331,27 +331,55 @@ public class Parser
 
     private Expression Factor()
     {
-        var expression = Unar();
+        var expression = UnaryExpression();
         while (Match(TokenType.SLASH, TokenType.STAR))
         {
             var operation = Previous();
-            var right = Unar();
+            var right = UnaryExpression();
             expression = new Binary(expression, operation, right);
         }
 
         return expression;
     }
 
-    private Expression Unar()
+    private Expression UnaryExpression()
     {
         if (Match(TokenType.BANG, TokenType.MINUS))
         {
             var operation = Previous();
-            var right = Unar();
+            var right = UnaryExpression();
             return new Unary(operation, right);
         }
 
-        return Primary();
+        return CallExpression();
+    }
+
+    private Expression CallExpression()
+    {
+        var expression = Primary();
+        while (true) {
+            if (Match(TokenType.LEFT_PAREN)) {
+                expression = FinishCall(expression);
+            } else {
+                break;
+            }
+        }
+        return expression;
+    }
+
+    private Expression FinishCall(Expression callee)
+    {
+        var arguments = new List<Expression>();
+        if (!Check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (arguments.Count >= 255) {
+                    Error(Peek(), "Can't have more than 255 arguments.");
+                }
+                arguments.Add(Expression());
+            } while (Match(TokenType.COMMA));
+        }
+        var paren = Consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+        return new Call(callee, paren, arguments);
     }
 
     private Expression Primary()

@@ -1,4 +1,5 @@
-﻿using Lox.Parser.Ast.Exceptions;
+﻿using Lox.Interpreter.Native;
+using Lox.Parser.Ast.Exceptions;
 using Lox.Parser.Ast.Expressions;
 using Lox.Parser.Ast.Interfaces;
 using Lox.Parser.Ast.Statements;
@@ -9,7 +10,13 @@ namespace Lox.Interpreter;
 
 public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 {
-    private Environment _environment = new Environment();
+    private static readonly Environment _globals = new();
+    
+    private Environment _environment = _globals;
+    public Interpreter()
+    {
+        _globals.Define("clock", new Clock());
+    }
     public void Interpret(List<Statement> statements) {
         try {
             foreach (var statement in statements)
@@ -22,7 +29,7 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
     }
     public void Interpret(Expression expression) {
         try {
-            object value = Evaluate(expression);
+            var value = Evaluate(expression);
             Console.WriteLine(Stringify(value));
         } catch (RuntimeError error) {
             Lox.RuntimeError(error);
@@ -96,6 +103,27 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
             }
         }
         return Evaluate(expression.Right);
+    }
+
+    public object VisitCallExpression(Call expression)
+    {
+        var callee = Evaluate(expression.Callee);
+        var arguments = new List<object>();
+        foreach (var argument in expression.Arguments)
+        {
+            arguments.Add(Evaluate(argument));
+        }
+        
+        if (!(callee is ILoxCallable function)) {
+            throw new RuntimeError(expression.Parenthesis, "Can only call functions and classes.");
+        }
+
+        if (arguments.Count != function.Arity) {
+            throw new RuntimeError(expression.Parenthesis,
+                $"Expected {function.Arity} arguments but got {arguments.Count}.");
+        }
+        
+        return function.Call(this, arguments);
     }
 
     private bool IsTruthy(object obj) {

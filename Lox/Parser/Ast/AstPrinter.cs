@@ -63,6 +63,11 @@ public class AstPrinter: IExpressionVisitor<string>, IStatementVisitor
         return Parenthesize(expression.Operation.Lexeme, expression.Left, expression.Right);
     }
 
+    public string VisitCallExpression(Call expression)
+    {
+        return $"Call expression";
+    }
+
     private string Parenthesize(string name, params Expression[] expressions)
     {
         var builder = new StringBuilder();
