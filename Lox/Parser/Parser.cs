@@ -30,6 +30,11 @@ public class Parser
     {
         try
         {
+            if (Match(TokenType.FUN))
+            {
+                return FunctionDeclaration("function");
+            }
+
             if (Match(TokenType.VAR))
             {
                 return VariableDeclaration();
@@ -42,6 +47,44 @@ public class Parser
             Synchronize();
             return null;
         }
+    }
+
+    private FunctionDeclarationStatement FunctionDeclaration(String kind)
+    {
+        Token name;
+        
+        if (kind == "lambda") {
+            var anon = $"__anon_${Guid.NewGuid()}";
+            name = new Token(TokenType.STRING, anon, anon, Previous().Line);
+        } else {
+            name = Consume(TokenType.IDENTIFIER, $"Expect {kind} name.");
+        }
+
+        Consume(TokenType.LEFT_PAREN, $"Expect '(' after {kind} name.");
+
+        var parameters = new List<Token>();
+
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
+            do
+            {
+                if (parameters.Count >= 255)
+                {
+                    Error(Peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.Add(
+                    Consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (Match(TokenType.COMMA));
+        }
+
+        Consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+        Consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+
+        var body = Block();
+
+        return new FunctionDeclarationStatement(name, parameters, body);
     }
 
     private Statement VariableDeclaration()
@@ -86,6 +129,11 @@ public class Parser
             return PrintStatement();
         }
 
+        if (Match(TokenType.RETURN))
+        {
+            return ReturnStatement();
+        }
+
         if (Match(TokenType.WHILE))
         {
             return WhileStatement();
@@ -95,7 +143,7 @@ public class Parser
         {
             return BreakStatement();
         }
-        
+
         if (Match(TokenType.CONTINUE))
         {
             return ContinueStatement();
@@ -161,7 +209,7 @@ public class Parser
         {
             body = new BlockStatement(new List<Statement> { initializer, body });
         }
-        
+
         _loopLevel -= 1;
 
         return body;
@@ -210,27 +258,42 @@ public class Parser
     {
         if (_loopLevel <= 0)
         {
-            throw Error(Previous(), "Expect 'break' inside a loop."); 
+            throw Error(Previous(), "Expect 'break' inside a loop.");
         }
+
         Consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new BreakStatement();
     }
-    
+
     private Statement ContinueStatement()
     {
         if (_loopLevel <= 0)
         {
-            throw Error(Previous(), "Expect 'continue' inside a loop."); 
-        }   
+            throw Error(Previous(), "Expect 'continue' inside a loop.");
+        }
+
         Consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new ContinueStatement();
     }
-    
+
     private Statement PrintStatement()
     {
         var expression = Expression();
         Consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new PrintStatement(expression);
+    }
+
+    private Statement ReturnStatement()
+    {
+        var keyword = Previous();
+        Expression? value = null;
+        if (!Check(TokenType.SEMICOLON))
+        {
+            value = Expression();
+        }
+
+        Consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+        return new ReturnStatement(keyword, value);
     }
 
     private Statement ExpressionStatement()
@@ -357,27 +420,37 @@ public class Parser
     private Expression CallExpression()
     {
         var expression = Primary();
-        while (true) {
-            if (Match(TokenType.LEFT_PAREN)) {
+        while (true)
+        {
+            if (Match(TokenType.LEFT_PAREN))
+            {
                 expression = FinishCall(expression);
-            } else {
+            }
+            else
+            {
                 break;
             }
         }
+
         return expression;
     }
 
     private Expression FinishCall(Expression callee)
     {
         var arguments = new List<Expression>();
-        if (!Check(TokenType.RIGHT_PAREN)) {
-            do {
-                if (arguments.Count >= 255) {
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
+            do
+            {
+                if (arguments.Count >= 255)
+                {
                     Error(Peek(), "Can't have more than 255 arguments.");
                 }
+
                 arguments.Add(Expression());
             } while (Match(TokenType.COMMA));
         }
+
         var paren = Consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
         return new Call(callee, paren, arguments);
     }
@@ -417,6 +490,12 @@ public class Parser
             return new Grouping(expr);
         }
 
+        if (Match(TokenType.FUN) && Check(TokenType.LEFT_PAREN))
+        {
+            var functionDeclaration = FunctionDeclaration("lambda");
+            return new Lambda(functionDeclaration.Name, functionDeclaration);
+        }
+
         throw Error(Peek(), "Expect expression.");
     }
 
@@ -447,7 +526,7 @@ public class Parser
 
     private ParseError Error(Token token, String message)
     {
-        Lox.Error(token, message);
+        LoxLang.Error(token, message);
         return new ParseError();
     }
 

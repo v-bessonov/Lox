@@ -93,7 +93,7 @@ public class Scanner
                     {
                         if (Peek() == '\0')
                         {
-                            Lox.Error(_line, "Missing close tag");
+                            LoxLang.Error(_line, "Missing close tag");
                             break;
                         }
 
@@ -133,7 +133,7 @@ public class Scanner
                 }
                 else
                 {
-                    Lox.Error(_line, "Unexpected character.");
+                    LoxLang.Error(_line, "Unexpected character.");
                 }
 
                 break;
@@ -186,7 +186,7 @@ public class Scanner
             Advance();
         }
         if (IsAtEnd()) {
-            Lox.Error(_line, "Unterminated string.");
+            LoxLang.Error(_line, "Unterminated string.");
             return;
         }
         // The closing ".

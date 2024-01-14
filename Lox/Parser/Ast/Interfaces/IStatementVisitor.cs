@@ -12,4 +12,6 @@ public interface IStatementVisitor
     void VisitWhileStatement(WhileStatement statement);
     void VisitBreakStatement(BreakStatement statement);
     void VisitContinueStatement(ContinueStatement statement);
+    void VisitFunctionDeclarationStatement(FunctionDeclarationStatement statement);
+    void VisitReturnStatement(ReturnStatement statement);
 }

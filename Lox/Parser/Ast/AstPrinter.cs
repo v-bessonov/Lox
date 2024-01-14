@@ -19,7 +19,7 @@ public class AstPrinter: IExpressionVisitor<string>, IStatementVisitor
                 //Console.WriteLine($"{new string(' ', indent * 2)}{root.Value}");
             }
         } catch (RuntimeError error) {
-            Lox.RuntimeError(error);
+            LoxLang.RuntimeError(error);
         }
     }
     
@@ -66,6 +66,11 @@ public class AstPrinter: IExpressionVisitor<string>, IStatementVisitor
     public string VisitCallExpression(Call expression)
     {
         return $"Call expression";
+    }
+
+    public string VisitLambdaExpression(Lambda expression)
+    {
+        return $"Lambda expression";
     }
 
     private string Parenthesize(string name, params Expression[] expressions)
@@ -129,5 +134,15 @@ public class AstPrinter: IExpressionVisitor<string>, IStatementVisitor
     public void VisitContinueStatement(ContinueStatement continueStatement)
     {
         Console.WriteLine($"Statement: {nameof(ContinueStatement)};");
+    }
+
+    public void VisitFunctionDeclarationStatement(FunctionDeclarationStatement statement)
+    {
+        Console.WriteLine($"Statement: {nameof(FunctionDeclarationStatement)};");
+    }
+
+    public void VisitReturnStatement(ReturnStatement statement)
+    {
+        Console.WriteLine($"Statement: {nameof(ReturnStatement)};");
     }
 }

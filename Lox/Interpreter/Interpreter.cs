@@ -1,60 +1,78 @@
 ﻿using Lox.Interpreter.Native;
 using Lox.Parser.Ast.Exceptions;
 using Lox.Parser.Ast.Expressions;
+using Lox.Parser.Ast.Functions;
 using Lox.Parser.Ast.Interfaces;
 using Lox.Parser.Ast.Statements;
 using Lox.Scanner;
 
 namespace Lox.Interpreter;
 
-
 public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 {
-    private static readonly Environment _globals = new();
-    
-    private Environment _environment = _globals;
+    public static readonly Environment Globals = new();
+
+    private Environment _environment = Globals;
+
     public Interpreter()
     {
-        _globals.Define("clock", new Clock());
+        Globals.Define("clock", new Clock());
     }
-    public void Interpret(List<Statement> statements) {
-        try {
+
+    public void Interpret(List<Statement> statements)
+    {
+        try
+        {
             foreach (var statement in statements)
             {
-                Execute(statement); 
+                Execute(statement);
             }
-        } catch (RuntimeError error) {
-            Lox.RuntimeError(error);
+        }
+        catch (RuntimeError error)
+        {
+            LoxLang.RuntimeError(error);
         }
     }
-    public void Interpret(Expression expression) {
-        try {
+
+    public void Interpret(Expression expression)
+    {
+        try
+        {
             var value = Evaluate(expression);
             Console.WriteLine(Stringify(value));
-        } catch (RuntimeError error) {
-            Lox.RuntimeError(error);
+        }
+        catch (RuntimeError error)
+        {
+            LoxLang.RuntimeError(error);
         }
     }
-    
-    private void Execute(Statement statement) {
+
+    private void Execute(Statement statement)
+    {
         statement.Accept(this);
     }
-    
-    private string Stringify(object obj) {
+
+    private string Stringify(object obj)
+    {
         if (obj is null)
         {
             return "nil";
         }
-        if (obj is double) {
+
+        if (obj is double)
+        {
             var text = obj.ToString();
-            if (text.EndsWith(".0")) {
+            if (text.EndsWith(".0"))
+            {
                 text = text.Substring(0, text.Length - 2);
             }
+
             return text;
         }
+
         return obj.ToString();
     }
-    
+
     public object VisitLiteralExpression(Literal expression)
     {
         return expression.Value;
@@ -91,17 +109,21 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
     public object VisitLogicalExpression(Logical expression)
     {
         var left = Evaluate(expression.Left);
-        if (expression.Operation.Type == TokenType.OR) {
+        if (expression.Operation.Type == TokenType.OR)
+        {
             if (IsTruthy(left))
             {
                 return left;
             }
-        } else {
+        }
+        else
+        {
             if (!IsTruthy(left))
             {
                 return left;
             }
         }
+
         return Evaluate(expression.Right);
     }
 
@@ -113,28 +135,39 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         {
             arguments.Add(Evaluate(argument));
         }
-        
-        if (!(callee is ILoxCallable function)) {
+
+        if (!(callee is ILoxCallable function))
+        {
             throw new RuntimeError(expression.Parenthesis, "Can only call functions and classes.");
         }
 
-        if (arguments.Count != function.Arity) {
+        if (arguments.Count != function.Arity)
+        {
             throw new RuntimeError(expression.Parenthesis,
                 $"Expected {function.Arity} arguments but got {arguments.Count}.");
         }
-        
+
         return function.Call(this, arguments);
     }
 
-    private bool IsTruthy(object obj) {
+    public object VisitLambdaExpression(Lambda expression)
+    {
+        Execute(expression.Function);
+        return _environment.Get(expression.Name);
+    }
+
+    private bool IsTruthy(object obj)
+    {
         if (obj == null)
         {
             return false;
         }
-        if (obj is bool )
+
+        if (obj is bool)
         {
             return (bool)obj;
         }
+
         return true;
     }
 
@@ -169,6 +202,7 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
                 {
                     return (string)left + (string)right;
                 }
+
                 throw new RuntimeError(expression.Operation,
                     "Operands must be two numbers or two strings.");
                 break;
@@ -191,32 +225,39 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         // Unreachable.
         return null;
     }
-    
-    private void CheckNumberOperand(Token operation, object operand) {
+
+    private void CheckNumberOperand(Token operation, object operand)
+    {
         if (operand is double)
         {
             return;
         }
+
         throw new RuntimeError(operation, "Operand must be a number.");
     }
-    
-    private void CheckNumberOperand(Token operation, object left, object right) {
+
+    private void CheckNumberOperand(Token operation, object left, object right)
+    {
         if (left is double && right is double)
         {
             return;
         }
+
         throw new RuntimeError(operation, "Operands must be a numbers.");
     }
 
-    public object VisitGroupingExpression(Grouping expression) {
+    public object VisitGroupingExpression(Grouping expression)
+    {
         return Evaluate(expression.GroupingExpression);
     }
-    
-    private object Evaluate(Expression expression) {
+
+    private object Evaluate(Expression expression)
+    {
         return expression.Accept(this);
     }
-    
-    private bool IsEqual(object a, object b) {
+
+    private bool IsEqual(object a, object b)
+    {
         if (a == null && b == null)
         {
             return true;
@@ -226,6 +267,7 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         {
             return false;
         }
+
         return a.Equals(b);
     }
 
@@ -243,9 +285,11 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
     public void VisitVariableDeclarationStatement(VariableDeclarationStatement statement)
     {
         object value = null;
-        if (statement.Expression is not null) {
+        if (statement.Expression is not null)
+        {
             value = Evaluate(statement.Expression);
         }
+
         _environment.Define(statement.Token.Lexeme, value);
     }
 
@@ -256,16 +300,20 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 
     public void VisitIfStatement(IfStatement statement)
     {
-        if (IsTruthy(Evaluate(statement.Condition))) {
+        if (IsTruthy(Evaluate(statement.Condition)))
+        {
             Execute(statement.ThenBranch);
-        } else if (statement.ElseBranch != null) {
+        }
+        else if (statement.ElseBranch != null)
+        {
             Execute(statement.ElseBranch);
         }
     }
 
     public void VisitWhileStatement(WhileStatement statement)
     {
-        while (IsTruthy(Evaluate(statement.Condition))) {
+        while (IsTruthy(Evaluate(statement.Condition)))
+        {
             try
             {
                 Execute(statement.Body);
@@ -291,7 +339,20 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         throw new ContinueException();
     }
 
-    private void ExecuteBlock
+    public void VisitFunctionDeclarationStatement(FunctionDeclarationStatement statement)
+    {
+        var function = new LoxFunction(statement, _environment);
+        _environment.Define(statement.Name.Lexeme, function);
+    }
+
+    public void VisitReturnStatement(ReturnStatement statement)
+    {
+        object? value = null;
+        if (statement.Value is not null) value = Evaluate(statement.Value);
+        throw new ReturnException(value);
+    }
+
+    public void ExecuteBlock
     (
         List<Statement> statements,
         Environment environment

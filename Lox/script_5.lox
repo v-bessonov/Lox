@@ -1,0 +1,70 @@
+var a = 0;
+var temp;
+print "one";
+
+
+var b = clock();
+
+print b;
+
+fun sum(a, b) {
+    print a + b;
+}
+
+sum(1,5);
+
+fun sayHi(first, last) {
+print "Hi, " + first + " " + last + "!";
+}
+sayHi("Dear", "Reader");
+
+
+fun count(n) {
+if (n > 1) count(n - 1);
+print n;
+}
+count(3);
+
+fun fib(n) {
+if (n <= 1) return n;
+return fib(n - 2) + fib(n - 1);
+}
+for (var i = 0; i < 20; i = i + 1) {
+print fib(i);
+}
+
+
+fun count1(n) {
+    while (n < 100) {
+            print n;
+            if (n == 3) return n; 
+            n = n + 1;
+        }
+    }
+    
+count1(1);
+
+
+fun makeCounter() {
+    var i = 0;
+    fun count() {
+        i = i + 1;
+        print i;
+    }
+    return count;
+}
+
+var counter = makeCounter();
+counter();
+counter();
+
+
+fun thrice(fn) {
+    for (var i = 1000; i <= 1003; i = i + 1) {
+        fn(i);
+    }
+}
+
+thrice(fun (a) {
+    print a;
+});

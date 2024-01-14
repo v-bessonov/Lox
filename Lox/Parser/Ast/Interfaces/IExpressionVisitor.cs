@@ -12,4 +12,5 @@ public interface IExpressionVisitor<T>
     T VisitAssignmentExpression(Assignment expression);
     T VisitLogicalExpression(Logical expression);
     T VisitCallExpression(Call expression);
+    T VisitLambdaExpression(Lambda expression);
 }

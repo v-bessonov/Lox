@@ -9,7 +9,7 @@ namespace Lox;
 /// <summary>
 /// Lox compiler
 /// </summary>
-public class Lox
+public class LoxLang
 {
     private static bool _hadError = false;
     private static bool _hadRuntimeError = false;
