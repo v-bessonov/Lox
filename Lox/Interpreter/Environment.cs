@@ -33,6 +33,18 @@ public class Environment
     public void Define(string name, object value) {
         _values.Add(name, value);
     }
+    
+    public object GetAt(int distance, string name) {
+        return Ancestor(distance)._values[name];
+    }
+    
+    Environment Ancestor(int distance) {
+        var environment = this;
+        for (var i = 0; i < distance; i++) {
+            environment = environment._enclosing;
+        }
+        return environment;
+    }
 
     public void Assign(Token name, object value)
     {
@@ -48,5 +60,9 @@ public class Environment
         }
 
         throw new RuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
+    }
+    
+    public void AssignAt(int distance, Token name, object value) {
+        Ancestor(distance)._values.Add(name.Lexeme, value);
     }
 }

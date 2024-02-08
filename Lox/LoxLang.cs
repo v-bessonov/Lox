@@ -94,6 +94,12 @@ public class LoxLang
 
         //Console.WriteLine(new AstPrinter().Print(expression));
         
+        
+        var resolver = new Resolver(_interpreter);
+        resolver.Resolve(statements);
+        
+        if (_hadError) return;
+        
         //_interpreter.Interpret(expression);
         _interpreter.Interpret(statements);
     }

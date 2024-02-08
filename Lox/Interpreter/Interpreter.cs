@@ -14,6 +14,8 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 
     private Environment _environment = Globals;
 
+    private Dictionary<Expression, int> _locals = new();
+
     public Interpreter()
     {
         Globals.Define("clock", new Clock());
@@ -32,6 +34,11 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         {
             LoxLang.RuntimeError(error);
         }
+    }
+
+    public void Resolve(Expression expr, int depth)
+    {
+        _locals.Add(expr, depth);
     }
 
     public void Interpret(Expression expression)
@@ -96,13 +103,32 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 
     public object VisitVariableExpression(Variable expression)
     {
-        return _environment.Get(expression.Token);
+        return LookUpVariable(expression.Token, expression);
+    }
+
+    private object LookUpVariable(Token name, Expression expression)
+
+    {
+        if (_locals.TryGetValue(expression, out var distance))
+        {
+            return _environment.GetAt(distance, name.Lexeme);
+        }
+
+        return Globals.Get(name);
     }
 
     public object VisitAssignmentExpression(Assignment expression)
     {
         var value = Evaluate(expression.Expression);
-        _environment.Assign(expression.Token, value);
+        if (_locals.TryGetValue(expression, out var distance))
+        {
+            _environment.AssignAt(distance, expression.Token, value);
+        }
+        else
+        {
+            Globals.Assign(expression.Token, value);
+        }
+
         return value;
     }
 
