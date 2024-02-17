@@ -1,6 +1,8 @@
 ﻿using Lox.Parser.Ast.Exceptions;
 using Lox.Parser.Ast.Interfaces;
+using Lox.Parser.Ast.Klass;
 using Lox.Parser.Ast.Statements;
+using Environment = Lox.Interpreter.Environment;
 
 namespace Lox.Parser.Ast.Functions;
 
@@ -19,7 +21,7 @@ public class LoxFunction : ILoxCallable
 
     public object? Call(Interpreter.Interpreter interpreter, List<object> arguments)
     {
-        var environment = new Interpreter.Environment(_closure);
+        var environment = new Environment(_closure);
         for (var i = 0; i < Declaration.Params.Count; i++)
         {
             environment.Define(Declaration.Params[i].Lexeme, arguments[i]);
@@ -35,6 +37,12 @@ public class LoxFunction : ILoxCallable
         }
 
         return null;
+    }
+    
+    public LoxFunction Bind(LoxInstance instance) {
+        var environment = new Environment(_closure);
+        environment.Define("this", instance);
+        return new LoxFunction(Declaration, environment);
     }
 
     public override string ToString()

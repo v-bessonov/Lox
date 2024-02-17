@@ -10,6 +10,7 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
     private readonly Interpreter _interpreter;
     private readonly Stack<Dictionary<string, bool>> _scopes = new();
     private FunctionType _currentFunction = FunctionType.NONE;
+    private ClassType _currentClass = ClassType.NONE;
 
     public Resolver(Interpreter interpreter)
     {
@@ -85,12 +86,21 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
 
     private void ResolveLocal(Expression expression, Token name)
     {
-        for (var i = _scopes.Count - 1; i >= 0; i--)
+        // Error in Crafting interpreter book
+        
+        /*for (var i = _scopes.Count - 1; i >= 0; i--)
         {
             if (_scopes.ElementAt(i).ContainsKey(name.Lexeme))
             {
                 _interpreter.Resolve(expression, _scopes.Count - 1 - i);
                 return;
+            }
+        }*/
+        
+        for (int i = 0; i < _scopes.Count; i++) {
+            if (_scopes.ElementAt(i).ContainsKey(name.Lexeme)) {
+                _interpreter.Resolve(expression, i);
+                return; 
             }
         }
     }
@@ -123,6 +133,29 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
         Declare(expression.Function.Name);
         Define(expression.Function.Name);
         ResolveFunction(expression.Function, FunctionType.FUNCTION);
+        return null;
+    }
+
+    public object VisitGetExpression(GetExpression expression)
+    {
+        Resolve(expression.Object);
+        return null;
+    }
+
+    public object VisitSetExpression(SetExpression expression)
+    {
+        Resolve(expression.Value);
+        Resolve(expression.Object);
+        return null;
+    }
+
+    public object VisitThisExpression(ThisExpression expression)
+    {
+        if (_currentClass == ClassType.NONE) {
+            LoxLang.Error(expression.Keyword, "Can't use 'this' outside of a class.");
+            return null;
+        }
+        ResolveLocal(expression, expression.Keyword);
         return null;
     }
 
@@ -234,5 +267,25 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
         if (statement.Value != null) {
             Resolve(statement.Value);
         }
+    }
+
+    public void VisitClassDeclarationStatement(ClassDeclarationStatement statement)
+    {
+        var enclosingClass = _currentClass;
+        _currentClass = ClassType.CLASS;
+        Declare(statement.Name);
+        Define(statement.Name);
+        
+        BeginScope();
+        _scopes.Peek().Add("this", true);
+        
+        foreach (var method in statement.Methods) {
+            var declaration = FunctionType.METHOD;
+            ResolveFunction(method, declaration);
+        }
+
+
+        _currentClass = enclosingClass;
+        EndScope();
     }
 }

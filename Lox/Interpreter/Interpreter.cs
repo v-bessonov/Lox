@@ -3,6 +3,7 @@ using Lox.Parser.Ast.Exceptions;
 using Lox.Parser.Ast.Expressions;
 using Lox.Parser.Ast.Functions;
 using Lox.Parser.Ast.Interfaces;
+using Lox.Parser.Ast.Klass;
 using Lox.Parser.Ast.Statements;
 using Lox.Scanner;
 
@@ -180,6 +181,32 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
     {
         Execute(expression.Function);
         return _environment.Get(expression.Name);
+    }
+
+    public object VisitGetExpression(GetExpression expression)
+    {
+        var obj = Evaluate(expression.Object);
+        if (obj is LoxInstance) {
+            return ((LoxInstance) obj).Get(expression.Name);
+        }
+        throw new RuntimeError(expression.Name,
+            "Only instances have properties.");
+    }
+
+    public object VisitSetExpression(SetExpression expression)
+    {
+        var obj = Evaluate(expression.Object);
+        if (!(obj is LoxInstance)) {
+            throw new RuntimeError(expression.Name, "Only instances have fields.");
+        }
+        var value = Evaluate(expression.Value);
+        ((LoxInstance)obj).Set(expression.Name, value);
+        return value;
+    }
+
+    public object VisitThisExpression(ThisExpression expression)
+    {
+        return LookUpVariable(expression.Keyword, expression);
     }
 
     private bool IsTruthy(object obj)
@@ -376,6 +403,18 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         object? value = null;
         if (statement.Value is not null) value = Evaluate(statement.Value);
         throw new ReturnException(value);
+    }
+
+    public void VisitClassDeclarationStatement(ClassDeclarationStatement statement)
+    {
+        _environment.Define(statement.Name.Lexeme, null);
+        Dictionary<string, LoxFunction> methods = new();
+        foreach (var method in statement.Methods) {
+            var function = new LoxFunction(method, _environment);
+            methods.Add(method.Name.Lexeme, function);
+        }
+        var klass = new LoxClass(statement.Name.Lexeme, methods);
+        _environment.Assign(statement.Name, klass);
     }
 
     public void ExecuteBlock

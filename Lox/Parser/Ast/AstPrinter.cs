@@ -73,6 +73,21 @@ public class AstPrinter: IExpressionVisitor<string>, IStatementVisitor
         return $"Lambda expression";
     }
 
+    public string VisitGetExpression(GetExpression expression)
+    {
+        return $"{nameof(GetExpression)} expression";
+    }
+
+    public string VisitSetExpression(SetExpression expression)
+    {
+        return $"{nameof(SetExpression)} expression";
+    }
+
+    public string VisitThisExpression(ThisExpression expression)
+    {
+        return $"{nameof(ThisExpression)} expression";
+    }
+
     private string Parenthesize(string name, params Expression[] expressions)
     {
         var builder = new StringBuilder();
@@ -144,5 +159,10 @@ public class AstPrinter: IExpressionVisitor<string>, IStatementVisitor
     public void VisitReturnStatement(ReturnStatement statement)
     {
         Console.WriteLine($"Statement: {nameof(ReturnStatement)};");
+    }
+
+    public void VisitClassDeclarationStatement(ClassDeclarationStatement statement)
+    {
+        Console.WriteLine($"Statement: {nameof(ClassDeclarationStatement)};");
     }
 }

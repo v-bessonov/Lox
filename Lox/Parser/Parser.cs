@@ -30,6 +30,11 @@ public class Parser
     {
         try
         {
+            if (Match(TokenType.CLASS))
+            {
+                return ClassDeclaration();
+            }
+            
             if (Match(TokenType.FUN))
             {
                 return FunctionDeclaration("function");
@@ -47,6 +52,23 @@ public class Parser
             Synchronize();
             return null;
         }
+    }
+
+    private Statement ClassDeclaration()
+    {
+        var name = Consume(TokenType.IDENTIFIER, "Expect class name.");
+
+        Consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+        
+        var methods = new List<FunctionDeclarationStatement>();
+        
+        while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd()) {
+            methods.Add(FunctionDeclaration("method"));
+        }
+
+        Consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+        
+        return new ClassDeclarationStatement(name, methods);
     }
 
     private FunctionDeclarationStatement FunctionDeclaration(String kind)
@@ -319,6 +341,9 @@ public class Parser
             {
                 var token = ((Variable)expression).Token;
                 return new Assignment(token, value);
+            }else if (expression is GetExpression) {
+                var get = (GetExpression)expression;
+                return new SetExpression(get.Object, get.Name, value);
             }
 
             Error(equals, "Invalid assignment target.");
@@ -426,6 +451,11 @@ public class Parser
             {
                 expression = FinishCall(expression);
             }
+            else if (Match(TokenType.DOT)) {
+                var name = Consume(TokenType.IDENTIFIER,
+                    "Expect property name after '.'.");
+                expression = new GetExpression(expression, name);
+            }
             else
             {
                 break;
@@ -476,6 +506,9 @@ public class Parser
         {
             return new Literal(Previous().Literal);
         }
+        
+        if (Match(TokenType.THIS))
+            return new ThisExpression(Previous());
 
         if (Match(TokenType.IDENTIFIER))
         {

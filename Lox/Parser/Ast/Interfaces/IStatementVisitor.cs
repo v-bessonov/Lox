@@ -14,4 +14,5 @@ public interface IStatementVisitor
     void VisitContinueStatement(ContinueStatement statement);
     void VisitFunctionDeclarationStatement(FunctionDeclarationStatement statement);
     void VisitReturnStatement(ReturnStatement statement);
+    void VisitClassDeclarationStatement(ClassDeclarationStatement statement);
 }

@@ -13,6 +13,18 @@ public class Environment
     public Environment(Environment enclosing)
     {
         _enclosing = enclosing;
+        // if (_enclosing._values.ContainsKey("this"))
+        // {
+        //     _values.Add("this", enclosing._values["this"]);
+        // }
+    }
+
+    public void Copy()
+    {
+        foreach (var item in _enclosing._values)
+        {
+            _values.Add(item.Key, item.Value);
+        }
     }
 
     public object Get(Token name)
@@ -34,7 +46,8 @@ public class Environment
         _values.Add(name, value);
     }
     
-    public object GetAt(int distance, string name) {
+    public object GetAt(int distance, string name)
+    {
         return Ancestor(distance)._values[name];
     }
     
@@ -44,6 +57,24 @@ public class Environment
             environment = environment._enclosing;
         }
         return environment;
+    }
+
+    Environment Descendant(int distance)
+    {
+        var environment = this;
+        var allEnvironmentsChain = new List<Environment>
+        {
+            environment
+        };
+        while (environment._enclosing is not null)
+        {
+            environment = environment._enclosing;
+            allEnvironmentsChain.Add(environment);
+        }
+        
+        allEnvironmentsChain.Reverse();
+
+        return allEnvironmentsChain[distance + 1];
     }
 
     public void Assign(Token name, object value)
