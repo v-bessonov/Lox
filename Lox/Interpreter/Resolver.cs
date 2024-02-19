@@ -265,6 +265,9 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
             LoxLang.Error(statement.Keyword, "Can't return from top-level code.");
         }
         if (statement.Value != null) {
+            if (_currentFunction == FunctionType.INITIALIZER) {
+                LoxLang.Error(statement.Keyword, "Can't return a value from an initializer.");
+            }
             Resolve(statement.Value);
         }
     }
@@ -281,6 +284,9 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
         
         foreach (var method in statement.Methods) {
             var declaration = FunctionType.METHOD;
+            if (method.Name.Lexeme.Equals("init")) {
+                declaration = FunctionType.INITIALIZER;
+            }
             ResolveFunction(method, declaration);
         }
 

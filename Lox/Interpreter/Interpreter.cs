@@ -168,7 +168,7 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
             throw new RuntimeError(expression.Parenthesis, "Can only call functions and classes.");
         }
 
-        if (arguments.Count != function.Arity)
+        if (arguments.Count != function.Arity())
         {
             throw new RuntimeError(expression.Parenthesis,
                 $"Expected {function.Arity} arguments but got {arguments.Count}.");
@@ -394,7 +394,7 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 
     public void VisitFunctionDeclarationStatement(FunctionDeclarationStatement statement)
     {
-        var function = new LoxFunction(statement, _environment);
+        var function = new LoxFunction(statement, _environment, false);
         _environment.Define(statement.Name.Lexeme, function);
     }
 
@@ -410,7 +410,7 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         _environment.Define(statement.Name.Lexeme, null);
         Dictionary<string, LoxFunction> methods = new();
         foreach (var method in statement.Methods) {
-            var function = new LoxFunction(method, _environment);
+            var function = new LoxFunction(method, _environment, method.Name.Lexeme.Equals("init"));
             methods.Add(method.Name.Lexeme, function);
         }
         var klass = new LoxClass(statement.Name.Lexeme, methods);

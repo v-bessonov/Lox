@@ -18,10 +18,19 @@ public class LoxClass : ILoxCallable
         return Name;
     }
 
-    public int Arity => 0;
+    public int Arity()
+    {
+        var initializer = FindMethod("init");
+        if (initializer is null) return 0;
+        return initializer.Arity();
+    }
     public object? Call(Interpreter.Interpreter interpreter, List<object> arguments)
     {
         var instance = new LoxInstance(this);
+        var initializer = FindMethod("init");
+        if (initializer is not null) {
+            initializer.Bind(instance).Call(interpreter, arguments);
+        }
         return instance;
     }
     

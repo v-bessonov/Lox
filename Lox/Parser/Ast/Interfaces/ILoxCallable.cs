@@ -2,6 +2,6 @@
 
 public interface ILoxCallable
 {
-    int Arity { get; }
+    int Arity();
     object? Call(Interpreter.Interpreter interpreter, List<object> arguments);
 }

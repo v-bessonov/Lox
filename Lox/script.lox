@@ -1,62 +1,22 @@
-class Breakfast {
-    cook() {
-        print "Eggs a-fryin'!";
-    }
-    serve(who) {
-        print "Enjoy your breakfast, " + who + ".";
-    }
-}
-
-print Breakfast;
-
-
-class Bagel {}
-var bagel = Bagel();
-print bagel;
-
-class Bacon {
-    eat() {
-        print "Crunch crunch crunch!";
-    }
-}
-Bacon().eat();
-
-
-class Egotist {
-    speak() {
+class Foo {
+    init() {
         print this;
     }
 }
-var method = Egotist().speak;
-method();
 
+var foo = Foo();
+print foo.init();
 
-class Cake {
-    taste() {
-        var adjective = "delicious";
-        print "The " + this.flavor + " cake is " + adjective + "!";
+class Boo {
+    init() {
+        return;
     }
 }
-var cake = Cake();
-cake.flavor = "German chocolate";
-cake.taste(); // Prints "The German chocolate cake is delicious!".
 
 
-
-class Thing {
-    getCallback() {
-        fun localFunction() {
-            print this;
-        }
-        return localFunction;
+/*
+class Too {
+    init() {
+        return "something else";
     }
-}
-var callback = Thing().getCallback();
-callback();
-
-/*print this;
-
-
-fun notAMethod() {
-    print this;
 }*/

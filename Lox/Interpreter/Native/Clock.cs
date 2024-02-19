@@ -4,7 +4,7 @@ namespace Lox.Interpreter.Native;
 
 public class Clock : ILoxCallable
 {
-    public int Arity => 0;
+    public int Arity() => 0;
     public object Call(Interpreter interpreter, List<object> arguments)
     {
         return ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
