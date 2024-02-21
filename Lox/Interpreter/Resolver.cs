@@ -159,6 +159,12 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
         return null;
     }
 
+    public object VisitSuperExpression(SuperExpression expression)
+    {
+        ResolveLocal(expression, expression.Keyword);
+        return null;
+    }
+
     public void VisitPrintStatement(PrintStatement statement)
     {
         Resolve(statement.Expression);
@@ -279,6 +285,20 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
         Declare(statement.Name);
         Define(statement.Name);
         
+        if (statement.SuperClass is not null &&
+            statement.Name.Lexeme.Equals(statement.SuperClass.Token.Lexeme)) {
+            LoxLang.Error(statement.SuperClass.Token, "A class can't inherit from itself.");
+        }
+        
+        if (statement.SuperClass is not null) {
+            Resolve(statement.SuperClass);
+        }
+        
+        if (statement.SuperClass is not null) {
+            BeginScope();
+            _scopes.Peek().Add("super", true);
+        }
+        
         BeginScope();
         _scopes.Peek().Add("this", true);
         
@@ -290,6 +310,8 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
             ResolveFunction(method, declaration);
         }
 
+        if (statement.SuperClass is not null)
+            EndScope();
 
         _currentClass = enclosingClass;
         EndScope();

@@ -16,4 +16,5 @@ public interface IExpressionVisitor<T>
     T VisitGetExpression(GetExpression expression);
     T VisitSetExpression(SetExpression expression);
     T VisitThisExpression(ThisExpression expression);
+    T VisitSuperExpression(SuperExpression expression);
 }

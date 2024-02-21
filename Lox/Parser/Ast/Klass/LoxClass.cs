@@ -9,8 +9,11 @@ public class LoxClass : ILoxCallable
     
     public Dictionary<string, LoxFunction> Methods { get; }
     
-    public LoxClass(string name, Dictionary<string, LoxFunction> methods) {
+    public LoxClass SuperClass { get; }
+    
+    public LoxClass(string name, LoxClass superclass, Dictionary<string, LoxFunction> methods) {
         Name = name;
+        SuperClass = superclass;
         Methods = methods;
     }
     
@@ -38,6 +41,11 @@ public class LoxClass : ILoxCallable
         if (Methods.ContainsKey(name)) {
             return Methods[name];
         }
+        
+        if (SuperClass is not null) {
+            return SuperClass.FindMethod(name);
+        }
+        
         return null;
     }
 }

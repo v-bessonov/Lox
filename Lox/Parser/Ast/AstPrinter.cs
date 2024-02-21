@@ -88,6 +88,11 @@ public class AstPrinter: IExpressionVisitor<string>, IStatementVisitor
         return $"{nameof(ThisExpression)} expression";
     }
 
+    public string VisitSuperExpression(SuperExpression superExpression)
+    {
+        return $"{nameof(SuperExpression)} expression";
+    }
+
     private string Parenthesize(string name, params Expression[] expressions)
     {
         var builder = new StringBuilder();

@@ -57,6 +57,12 @@ public class Parser
     private Statement ClassDeclaration()
     {
         var name = Consume(TokenType.IDENTIFIER, "Expect class name.");
+        
+        Variable superclass = null;
+        if (Match(TokenType.LESS)) {
+            Consume(TokenType.IDENTIFIER, "Expect superclass name.");
+            superclass = new Variable(Previous());
+        }
 
         Consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
         
@@ -68,7 +74,7 @@ public class Parser
 
         Consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
         
-        return new ClassDeclarationStatement(name, methods);
+        return new ClassDeclarationStatement(name, superclass, methods);
     }
 
     private FunctionDeclarationStatement FunctionDeclaration(String kind)
@@ -505,6 +511,13 @@ public class Parser
         if (Match(TokenType.NUMBER, TokenType.STRING))
         {
             return new Literal(Previous().Literal);
+        }
+        
+        if (Match(TokenType.SUPER)) {
+            var keyword = Previous();
+            Consume(TokenType.DOT, "Expect '.' after 'super'.");
+            var method = Consume(TokenType.IDENTIFIER, "Expect superclass method name.");
+            return new SuperExpression(keyword, method);
         }
         
         if (Match(TokenType.THIS))

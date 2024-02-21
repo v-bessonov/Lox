@@ -209,6 +209,23 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
         return LookUpVariable(expression.Keyword, expression);
     }
 
+    public object VisitSuperExpression(SuperExpression expression)
+    {
+        var distance = _locals[expression];
+        var superclass = (LoxClass)_environment.GetAt(distance, "super");
+        
+        var obj = (LoxInstance)_environment.GetAt(distance - 1, "this");
+        
+        var method = superclass.FindMethod(expression.Method.Lexeme);
+        
+        if (method == null) {
+            throw new RuntimeError(expression.Method,
+                "Undefined property '" + expression.Method.Lexeme + "'.");
+        }
+        
+        return method.Bind(obj);
+    }
+
     private bool IsTruthy(object obj)
     {
         if (obj == null)
@@ -407,13 +424,32 @@ public class Interpreter : IExpressionVisitor<object>, IStatementVisitor
 
     public void VisitClassDeclarationStatement(ClassDeclarationStatement statement)
     {
+        object? superclass = null;
+        if (statement.SuperClass is not null) {
+            superclass = Evaluate(statement.SuperClass);
+            if (!(superclass is LoxClass)) {
+                throw new RuntimeError(statement.SuperClass.Token, "Superclass must be a class.");
+            }
+        }
+        
         _environment.Define(statement.Name.Lexeme, null);
+        
+        if (statement.SuperClass is not null) {
+            _environment = new Environment(_environment);
+            _environment.Define("super", superclass);
+        }
+        
         Dictionary<string, LoxFunction> methods = new();
         foreach (var method in statement.Methods) {
             var function = new LoxFunction(method, _environment, method.Name.Lexeme.Equals("init"));
             methods.Add(method.Name.Lexeme, function);
         }
-        var klass = new LoxClass(statement.Name.Lexeme, methods);
+        var klass = new LoxClass(statement.Name.Lexeme, (LoxClass)superclass, methods);
+        
+        if (superclass is not null) {
+            _environment = _environment.Enclosing;
+        }
+        
         _environment.Assign(statement.Name, klass);
     }
 

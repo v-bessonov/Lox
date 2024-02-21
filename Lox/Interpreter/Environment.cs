@@ -4,24 +4,20 @@ namespace Lox.Interpreter;
 
 public class Environment
 {
-    private Environment _enclosing;
+    public Environment Enclosing { get; }
     private readonly Dictionary<string, object> _values = new();
 
     public Environment() {
-        _enclosing = null;
+        Enclosing = null;
     }
     public Environment(Environment enclosing)
     {
-        _enclosing = enclosing;
-        // if (_enclosing._values.ContainsKey("this"))
-        // {
-        //     _values.Add("this", enclosing._values["this"]);
-        // }
+        Enclosing = enclosing;
     }
 
     public void Copy()
     {
-        foreach (var item in _enclosing._values)
+        foreach (var item in Enclosing._values)
         {
             _values.Add(item.Key, item.Value);
         }
@@ -34,9 +30,9 @@ public class Environment
             return _values[name.Lexeme];
         }
 
-        if (_enclosing != null)
+        if (Enclosing != null)
         {
-            return _enclosing.Get(name);
+            return Enclosing.Get(name);
         }
 
         throw new RuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
@@ -54,7 +50,7 @@ public class Environment
     Environment Ancestor(int distance) {
         var environment = this;
         for (var i = 0; i < distance; i++) {
-            environment = environment._enclosing;
+            environment = environment.Enclosing;
         }
         return environment;
     }
@@ -66,9 +62,9 @@ public class Environment
         {
             environment
         };
-        while (environment._enclosing is not null)
+        while (environment.Enclosing is not null)
         {
-            environment = environment._enclosing;
+            environment = environment.Enclosing;
             allEnvironmentsChain.Add(environment);
         }
         
@@ -85,8 +81,8 @@ public class Environment
             return;
         }
         
-        if (_enclosing != null) {
-            _enclosing.Assign(name, value);
+        if (Enclosing != null) {
+            Enclosing.Assign(name, value);
             return;
         }
 

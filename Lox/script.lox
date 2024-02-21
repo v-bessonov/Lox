@@ -1,22 +1,37 @@
-class Foo {
-    init() {
-        print this;
+//class Oops < Oops {}
+
+
+class Doughnut {
+    cook() {
+        print "Fry until golden brown.";
     }
 }
 
-var foo = Foo();
-print foo.init();
-
-class Boo {
-    init() {
-        return;
+class BostonCream < Doughnut {
+    cook() {
+        super.cook();
+        print "Pipe full of custard and coat with chocolate.";
     }
 }
 
+BostonCream().cook();
 
-/*
-class Too {
-    init() {
-        return "something else";
+
+class A {
+    method() {
+        print "Method A";
     }
-}*/
+}
+
+class B < A {
+    method() {
+        print "Method B";
+    }
+    test() {
+        super.method();
+    }
+}
+
+class C < B {}
+
+C().test();
