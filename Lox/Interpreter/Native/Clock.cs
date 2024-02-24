@@ -7,7 +7,7 @@ public class Clock : ILoxCallable
     public int Arity() => 0;
     public object Call(Interpreter interpreter, List<object> arguments)
     {
-        return ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds();
+        return Convert.ToDouble(((DateTimeOffset)DateTime.UtcNow).ToUnixTimeMilliseconds());
     }
 
     public override string ToString()

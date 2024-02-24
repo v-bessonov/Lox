@@ -161,6 +161,11 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
 
     public object VisitSuperExpression(SuperExpression expression)
     {
+        if (_currentClass == ClassType.NONE) {
+            LoxLang.Error(expression.Keyword, "Can't use 'super' outside of a class.");
+        } else if (_currentClass != ClassType.SUBCLASS) {
+            LoxLang.Error(expression.Keyword, "Can't use 'super' in a class with no superclass.");
+        }
         ResolveLocal(expression, expression.Keyword);
         return null;
     }
@@ -291,6 +296,7 @@ public class Resolver : IExpressionVisitor<object>, IStatementVisitor
         }
         
         if (statement.SuperClass is not null) {
+            _currentClass = ClassType.SUBCLASS;
             Resolve(statement.SuperClass);
         }
         
